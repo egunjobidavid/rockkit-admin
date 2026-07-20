@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import { useAuthStore } from '../stores/auth-store';
 import { api } from '../api/client';
 import { Search, MessageSquare } from 'lucide-react';
+import { DataTable } from '../components/DataTable';
+import { StatusBadge } from '../components/Badge';
+import { TICKET_STATUS, TICKET_PRIORITY } from '../constants/admin';
 
 interface Ticket {
   id: string;
@@ -22,10 +25,12 @@ export default function TicketsPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [loading, setLoading] = useState(true);
 
+  const LIMIT = 20;
+
   const load = async (p = page, q = search, s = statusFilter) => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ page: String(p), limit: '20' });
+      const params = new URLSearchParams({ page: String(p), limit: String(LIMIT) });
       if (q) params.set('search', q);
       if (s) params.set('status', s);
       const data = await api.get(`/admin/tickets?${params}`, token!);
@@ -51,18 +56,38 @@ export default function TicketsPage() {
     load(1, search, status);
   };
 
-  const priorityBadge = (p: string) => {
-    if (p === 'high') return <span className="badge-red">High</span>;
-    if (p === 'medium') return <span className="badge-yellow">Medium</span>;
-    return <span className="badge-gray">{p || 'Low'}</span>;
-  };
-
-  const statusBadge = (s: string) => {
-    if (s === 'open') return <span className="badge-green">Open</span>;
-    if (s === 'closed') return <span className="badge-gray">Closed</span>;
-    if (s === 'in_progress') return <span className="badge-yellow">In Progress</span>;
-    return <span className="badge-gray">{s || '-'}</span>;
-  };
+  const columns = [
+    {
+      key: 'subject',
+      header: 'Subject',
+      render: (t: Ticket) => <span className="font-medium text-gray-900">{t.subject}</span>,
+    },
+    {
+      key: 'tenant_name',
+      header: 'Tenant',
+      render: (t: Ticket) => <span className="text-gray-600">{t.tenant_name || '-'}</span>,
+    },
+    {
+      key: 'user_email',
+      header: 'User',
+      render: (t: Ticket) => <span className="text-gray-600">{t.user_email || '-'}</span>,
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (t: Ticket) => <StatusBadge status={t.status} map={TICKET_STATUS} />,
+    },
+    {
+      key: 'priority',
+      header: 'Priority',
+      render: (t: Ticket) => <StatusBadge status={t.priority} map={TICKET_PRIORITY} />,
+    },
+    {
+      key: 'created_at',
+      header: 'Created',
+      render: (t: Ticket) => <span className="text-gray-500">{new Date(t.created_at).toLocaleDateString()}</span>,
+    },
+  ];
 
   return (
     <div className="p-8">
@@ -99,49 +124,22 @@ export default function TicketsPage() {
         </div>
       </div>
 
-      <div className="card overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Subject</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Tenant</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">User</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Priority</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Created</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {loading ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
-            ) : tickets.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
-                  <MessageSquare className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                  No tickets found
-                </td>
-              </tr>
-            ) : tickets.map((t) => (
-              <tr key={t.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-medium text-gray-900">{t.subject}</td>
-                <td className="px-4 py-3 text-gray-600">{t.tenant_name || '-'}</td>
-                <td className="px-4 py-3 text-gray-600">{t.user_email || '-'}</td>
-                <td className="px-4 py-3">{statusBadge(t.status)}</td>
-                <td className="px-4 py-3">{priorityBadge(t.priority)}</td>
-                <td className="px-4 py-3 text-gray-500">{new Date(t.created_at).toLocaleDateString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {total > 20 && (
-        <div className="flex items-center justify-between mt-4">
-          <button disabled={page <= 1} onClick={() => { setPage(page - 1); load(page - 1); }} className="btn-secondary disabled:opacity-50">Previous</button>
-          <span className="text-sm text-gray-500">Page {page} of {Math.ceil(total / 20)}</span>
-          <button disabled={page * 20 >= total} onClick={() => { setPage(page + 1); load(page + 1); }} className="btn-secondary disabled:opacity-50">Next</button>
-        </div>
-      )}
+      <DataTable
+        columns={columns}
+        data={tickets}
+        loading={loading}
+        page={page}
+        total={total}
+        totalPages={Math.ceil(total / LIMIT)}
+        onPageChange={(p) => { setPage(p); load(p); }}
+        emptyMessage={
+          <div className="flex flex-col items-center gap-2 text-gray-400">
+            <MessageSquare className="w-8 h-8" />
+            No tickets found
+          </div>
+        }
+        rowKey={(t) => t.id}
+      />
     </div>
   );
 }

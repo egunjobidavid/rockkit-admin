@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuthStore } from '../stores/auth-store';
 import { api } from '../api/client';
 import { Building2, Users, DollarSign, HeartPulse, Loader2 } from 'lucide-react';
+import { StatCard } from '../components/StatCard';
 
 interface Stats {
   totalTenants: number;
@@ -36,10 +37,10 @@ export default function DashboardPage() {
   }, [token]);
 
   const cards = [
-    { label: 'Total Tenants', value: stats.totalTenants, icon: Building2, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Active Subscriptions', value: stats.activeSubscriptions, icon: DollarSign, color: 'text-green-600', bg: 'bg-green-50' },
-    { label: 'Total Users', value: stats.totalUsers, icon: Users, color: 'text-purple-600', bg: 'bg-purple-50' },
-    { label: 'Open Tickets', value: stats.openTickets, icon: HeartPulse, color: stats.openTickets > 0 ? 'text-red-600' : 'text-green-600', bg: stats.openTickets > 0 ? 'bg-red-50' : 'bg-green-50' },
+    { label: 'Total Tenants', value: stats.totalTenants, icon: Building2, color: 'text-blue-600', bgColor: 'bg-blue-50' },
+    { label: 'Active Subscriptions', value: stats.activeSubscriptions, icon: DollarSign, color: 'text-green-600', bgColor: 'bg-green-50' },
+    { label: 'Total Users', value: stats.totalUsers, icon: Users, color: 'text-purple-600', bgColor: 'bg-purple-50' },
+    { label: 'Open Tickets', value: stats.openTickets, icon: HeartPulse, color: stats.openTickets > 0 ? 'text-red-600' : 'text-green-600', bgColor: stats.openTickets > 0 ? 'bg-red-50' : 'bg-green-50' },
   ];
 
   return (
@@ -51,17 +52,7 @@ export default function DashboardPage() {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {cards.map((card) => (
-              <div key={card.label} className="card p-6">
-                <div className="flex items-center gap-4">
-                  <div className={`${card.bg} p-3 rounded-xl`}>
-                    <card.icon className={`w-6 h-6 ${card.color}`} />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">{card.label}</p>
-                    <p className="text-2xl font-bold text-gray-900">{card.value}</p>
-                  </div>
-                </div>
-              </div>
+              <StatCard key={card.label} {...card} />
             ))}
           </div>
           <div className="card p-6">
