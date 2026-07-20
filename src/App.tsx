@@ -8,10 +8,13 @@ import UsersPage from './pages/UsersPage';
 import TicketsPage from './pages/TicketsPage';
 import PricingPage from './pages/PricingPage';
 import AppsPage from './pages/AppsPage';
+import SessionsPage from './pages/SessionsPage';
+import ConfigPage from './pages/ConfigPage';
 
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const RevenuePage = lazy(() => import('./pages/RevenuePage'));
 const HealthPage = lazy(() => import('./pages/HealthPage'));
+const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'));
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { token } = useAuthStore();
@@ -43,6 +46,9 @@ export default function AppRouter() {
           <Route path="/tenants" element={<TenantsPage />} />
           <Route path="/users" element={<UsersPage />} />
           <Route path="/apps" element={<AppsPage />} />
+          <Route path="/sessions" element={<SessionsPage />} />
+          <Route path="/config" element={<ConfigPage />} />
+          <Route path="/analytics" element={<Suspense fallback={<PageSpinner />}><AnalyticsPage /></Suspense>} />
           <Route path="/revenue" element={<Suspense fallback={<PageSpinner />}><RevenuePage /></Suspense>} />
           <Route path="/health" element={<Suspense fallback={<PageSpinner />}><HealthPage /></Suspense>} />
           <Route path="/tickets" element={<TicketsPage />} />

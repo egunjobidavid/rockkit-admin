@@ -90,6 +90,12 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   create_version: 'Registered app version',
   update_version: 'Updated app version',
   delete_version: 'Deleted app version',
+  revoke_session: 'Revoked user session',
+  cleanup_sessions: 'Cleaned up stale sessions',
+  create_config: 'Created remote config',
+  update_config: 'Updated remote config',
+  delete_config: 'Deleted remote config',
+  cleanup_analytics: 'Cleaned up old analytics',
 };
 
 // ─── Navigation ─────────────────────────────────────────────────────────────
@@ -99,6 +105,9 @@ export const NAV_ITEMS = [
   { to: '/tenants', label: 'Tenants', minRole: 'admin' as AdminRole },
   { to: '/users', label: 'Users', minRole: 'admin' as AdminRole },
   { to: '/apps', label: 'Apps', minRole: 'admin' as AdminRole },
+  { to: '/sessions', label: 'Sessions', minRole: 'admin' as AdminRole },
+  { to: '/config', label: 'Config', minRole: 'superadmin' as AdminRole },
+  { to: '/analytics', label: 'Analytics', minRole: 'admin' as AdminRole },
   { to: '/revenue', label: 'Revenue', minRole: 'admin' as AdminRole },
   { to: '/pricing', label: 'Pricing', minRole: 'superadmin' as AdminRole },
   { to: '/health', label: 'Health', minRole: 'admin' as AdminRole },
