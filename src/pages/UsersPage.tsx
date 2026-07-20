@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '../stores/auth-store';
 import { api } from '../api/client';
-import { Search, UserX, UserCheck, Eye, Shield, Clock } from 'lucide-react';
+import { Search, UserX, UserCheck, Eye, Shield, Clock, Download } from 'lucide-react';
+import { downloadCsv } from '../utils/export';
 import { DataTable } from '../components/DataTable';
 import { StatusBadge } from '../components/Badge';
 import { Modal } from '../components/Modal';
@@ -76,6 +77,28 @@ export default function UsersPage() {
 
   useEffect(() => { load(1, ''); }, [token]);
   useEffect(() => { if (tab === 'audit') loadAudit(1); }, [tab]);
+
+  const handleExportUsers = () => {
+    downloadCsv(users.map(u => ({
+      email: u.email,
+      name: u.full_name || '-',
+      admin_role: u.admin_role || (u.is_superadmin ? 'superadmin' : '-'),
+      tenant_role: u.memberships?.[0]?.role || '-',
+      status: u.status,
+      created: new Date(u.created_at).toLocaleDateString(),
+    })), 'admin-users');
+  };
+
+  const handleExportAudit = () => {
+    downloadCsv(auditLogs.map(log => ({
+      time: new Date(log.created_at).toLocaleString(),
+      user: log.user_email,
+      role: log.admin_role,
+      action: AUDIT_ACTION_LABELS[log.action] || log.action,
+      target: log.target_type ? `${log.target_type}: ${log.target_id}` : '-',
+      details: log.details ? JSON.stringify(log.details) : '-',
+    })), 'audit-log');
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -236,7 +259,14 @@ export default function UsersPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Admin Users</h1>
-        <span className="text-sm text-gray-500">{tab === 'users' ? `${total} users` : `${auditTotal} events`}</span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-500">{tab === 'users' ? `${total} users` : `${auditTotal} events`}</span>
+          {((tab === 'users' && users.length > 0) || (tab === 'audit' && auditLogs.length > 0)) && (
+            <button onClick={tab === 'users' ? handleExportUsers : handleExportAudit} className="btn-secondary flex items-center gap-2 text-sm">
+              <Download className="w-4 h-4" /> Export CSV
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="flex gap-1 border-b border-gray-200 mb-6">

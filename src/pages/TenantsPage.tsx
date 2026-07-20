@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '../stores/auth-store';
 import { api } from '../api/client';
-import { Search, Ban, CheckCircle, Eye, Edit, LogIn } from 'lucide-react';
+import { Search, Ban, CheckCircle, Eye, Edit, LogIn, Download } from 'lucide-react';
+import { downloadCsv } from '../utils/export';
 import { DataTable } from '../components/DataTable';
 import { StatusBadge } from '../components/Badge';
 import { Modal } from '../components/Modal';
@@ -97,6 +98,17 @@ export default function TenantsPage() {
     }
   };
 
+  const handleExport = () => {
+    downloadCsv(tenants.map(t => ({
+      name: t.name,
+      slug: t.slug,
+      plan: t.plan,
+      users: t.user_count,
+      status: t.status,
+      created: new Date(t.created_at).toLocaleDateString(),
+    })), 'tenants');
+  };
+
   const handleImpersonate = async (id: string) => {
     try {
       const data = await api.post(`/admin/tenants/${id}/impersonate`, {}, token!);
@@ -178,7 +190,14 @@ export default function TenantsPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Tenants</h1>
-        <span className="text-sm text-gray-500">{total} total</span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-500">{total} total</span>
+          {tenants.length > 0 && (
+            <button onClick={handleExport} className="btn-secondary flex items-center gap-2 text-sm">
+              <Download className="w-4 h-4" /> Export CSV
+            </button>
+          )}
+        </div>
       </div>
 
       <form onSubmit={handleSearch} className="flex gap-3 mb-6">

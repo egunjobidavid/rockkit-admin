@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '../stores/auth-store';
 import { api } from '../api/client';
-import { Search, MessageSquare } from 'lucide-react';
+import { Search, MessageSquare, Download } from 'lucide-react';
 import { DataTable } from '../components/DataTable';
 import { StatusBadge } from '../components/Badge';
 import { TICKET_STATUS, TICKET_PRIORITY } from '../constants/admin';
+import { downloadCsv } from '../utils/export';
 
 interface Ticket {
   id: string;
@@ -50,6 +51,17 @@ export default function TicketsPage() {
     load(1, search, statusFilter);
   };
 
+  const handleExport = () => {
+    downloadCsv(tickets.map(t => ({
+      subject: t.subject,
+      tenant: t.tenant_name || '-',
+      user: t.user_email || '-',
+      status: t.status,
+      priority: t.priority,
+      created: new Date(t.created_at).toLocaleDateString(),
+    })), 'support-tickets');
+  };
+
   const handleStatusFilter = (status: string) => {
     setStatusFilter(status);
     setPage(1);
@@ -93,7 +105,14 @@ export default function TicketsPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Support Tickets</h1>
-        <span className="text-sm text-gray-500">{total} total</span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-500">{total} total</span>
+          {tickets.length > 0 && (
+            <button onClick={handleExport} className="btn-secondary flex items-center gap-2 text-sm">
+              <Download className="w-4 h-4" /> Export CSV
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 mb-6">

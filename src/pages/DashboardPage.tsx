@@ -3,6 +3,7 @@ import { useAuthStore } from '../stores/auth-store';
 import { api } from '../api/client';
 import { Building2, Users, DollarSign, HeartPulse, Loader2 } from 'lucide-react';
 import { StatCard } from '../components/StatCard';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 interface Stats {
   totalTenants: number;
@@ -36,11 +37,11 @@ export default function DashboardPage() {
     }).catch(() => setLoading(false));
   }, [token]);
 
-  const cards = [
-    { label: 'Total Tenants', value: stats.totalTenants, icon: Building2, color: 'text-blue-600', bgColor: 'bg-blue-50' },
-    { label: 'Active Subscriptions', value: stats.activeSubscriptions, icon: DollarSign, color: 'text-green-600', bgColor: 'bg-green-50' },
-    { label: 'Total Users', value: stats.totalUsers, icon: Users, color: 'text-purple-600', bgColor: 'bg-purple-50' },
-    { label: 'Open Tickets', value: stats.openTickets, icon: HeartPulse, color: stats.openTickets > 0 ? 'text-red-600' : 'text-green-600', bgColor: stats.openTickets > 0 ? 'bg-red-50' : 'bg-green-50' },
+  const kpiData = [
+    { name: 'Tenants', value: stats.totalTenants },
+    { name: 'Subscriptions', value: stats.activeSubscriptions },
+    { name: 'Users', value: stats.totalUsers },
+    { name: 'Tickets', value: stats.openTickets },
   ];
 
   return (
@@ -51,22 +52,49 @@ export default function DashboardPage() {
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {cards.map((card) => (
-              <StatCard key={card.label} {...card} />
-            ))}
+            <StatCard label="Total Tenants" value={stats.totalTenants} icon={Building2} color="text-blue-600" bgColor="bg-blue-50" />
+            <StatCard label="Active Subscriptions" value={stats.activeSubscriptions} icon={DollarSign} color="text-green-600" bgColor="bg-green-50" />
+            <StatCard label="Total Users" value={stats.totalUsers} icon={Users} color="text-purple-600" bgColor="bg-purple-50" />
+            <StatCard label="Open Tickets" value={stats.openTickets} icon={HeartPulse} color={stats.openTickets > 0 ? 'text-red-600' : 'text-green-600'} bgColor={stats.openTickets > 0 ? 'bg-red-50' : 'bg-green-50'} />
           </div>
-          <div className="card p-6">
-            <h2 className="text-lg font-semibold mb-3">System Status</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-              <div>
-                <p className="text-gray-500">Database</p>
-                <p className={`font-medium ${stats.healthy ? 'text-green-600' : 'text-red-600'}`}>
-                  {stats.healthy ? 'Healthy' : 'Unhealthy'}
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-500">Memory Used</p>
-                <p className="font-medium">{stats.memory.heapUsedMB}MB / {stats.memory.heapTotalMB}MB</p>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div className="card p-6">
+              <h2 className="text-lg font-semibold mb-4">Platform Overview</h2>
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={kpiData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#2563eb" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="card p-6">
+              <h2 className="text-lg font-semibold mb-3">System Status</h2>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-gray-500">Database</p>
+                  <p className={`font-medium ${stats.healthy ? 'text-green-600' : 'text-red-600'}`}>
+                    {stats.healthy ? 'Healthy' : 'Unhealthy'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Memory Used</p>
+                  <p className="font-medium">{stats.memory.heapUsedMB}MB / {stats.memory.heapTotalMB}MB</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Heap Usage</p>
+                  <p className="font-medium">{stats.memory.heapTotalMB > 0 ? Math.round((stats.memory.heapUsedMB / stats.memory.heapTotalMB) * 100) : 0}%</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Open Issues</p>
+                  <p className={`font-medium ${stats.openTickets > 0 ? 'text-amber-600' : 'text-green-600'}`}>
+                    {stats.openTickets > 0 ? `${stats.openTickets} tickets` : 'All clear'}
+                  </p>
+                </div>
               </div>
             </div>
           </div>

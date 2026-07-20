@@ -3,6 +3,8 @@ import { useAuthStore } from '../stores/auth-store';
 import { api } from '../api/client';
 import { TrendingUp, DollarSign, Users, BarChart3 } from 'lucide-react';
 import { StatCard } from '../components/StatCard';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts';
+import { CURRENCY_SYMBOLS } from '../constants/admin';
 
 export default function RevenuePage() {
   const { token } = useAuthStore();
@@ -30,6 +32,18 @@ export default function RevenuePage() {
   const s = (summary as any)?.summary ?? {};
   const totalMRR = plans.reduce((sum: number, p: any) => sum + (p.estimated_mrr ?? 0), 0);
 
+  const barData = plans.map((p: any) => ({
+    name: p.plan.charAt(0).toUpperCase() + p.plan.slice(1),
+    MRR: p.estimated_mrr ?? 0,
+    tenants: p.count ?? 0,
+  }));
+
+  const lineData = history.map((h: any) => ({
+    month: h.month,
+    active: h.active_count ?? 0,
+    new: h.new_subscriptions ?? 0,
+  }));
+
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Revenue</h1>
@@ -39,6 +53,39 @@ export default function RevenuePage() {
         <StatCard label="Active Subs" value={s.active_subscriptions ?? 0} icon={DollarSign} color="text-green-600" bgColor="bg-green-50" />
         <StatCard label="Paid Tenants" value={s.paid_tenants ?? 0} icon={TrendingUp} color="text-purple-600" bgColor="bg-purple-50" />
         <StatCard label="Est. MRR" value={`₦${totalMRR.toLocaleString()}`} icon={BarChart3} color="text-amber-600" bgColor="bg-amber-50" />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {barData.length > 0 && (
+          <div className="card p-6">
+            <h2 className="text-lg font-semibold mb-4">MRR by Plan</h2>
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={barData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip formatter={(value: number) => `₦${value.toLocaleString()}`} />
+                <Bar dataKey="MRR" fill="#2563eb" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {lineData.length > 0 && (
+          <div className="card p-6">
+            <h2 className="text-lg font-semibold mb-4">Subscription Growth</h2>
+            <ResponsiveContainer width="100%" height={260}>
+              <LineChart data={lineData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip />
+                <Line type="monotone" dataKey="active" stroke="#2563eb" strokeWidth={2} dot={false} name="Active" />
+                <Line type="monotone" dataKey="new" stroke="#10b981" strokeWidth={2} dot={false} name="New" />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
