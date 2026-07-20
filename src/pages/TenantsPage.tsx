@@ -31,7 +31,9 @@ export default function TenantsPage() {
       const data = await api.get(`/admin/tenants?page=${p}&limit=20&search=${q}`, token!);
       setTenants((data as any)?.data ?? []);
       setTotal((data as any)?.total ?? 0);
-    } catch { /* ignore */ }
+    } catch (err: any) {
+      console.error('Failed to load tenants:', err);
+    }
     setLoading(false);
   };
 
@@ -45,20 +47,30 @@ export default function TenantsPage() {
 
   const handleSuspend = async (id: string) => {
     if (!confirm('Suspend this tenant?')) return;
-    await api.post(`/admin/tenants/${id}/suspend`, {}, token!);
-    load();
+    try {
+      await api.post(`/admin/tenants/${id}/suspend`, {}, token!);
+      load();
+    } catch (err: any) {
+      alert(err.message || 'Failed to suspend tenant');
+    }
   };
 
   const handleReactivate = async (id: string) => {
-    await api.post(`/admin/tenants/${id}/reactivate`, {}, token!);
-    load();
+    try {
+      await api.post(`/admin/tenants/${id}/reactivate`, {}, token!);
+      load();
+    } catch (err: any) {
+      alert(err.message || 'Failed to reactivate tenant');
+    }
   };
 
   const handleView = async (id: string) => {
     try {
       const data = await api.get(`/admin/tenants/${id}`, token!);
       setSelectedTenant(data);
-    } catch { /* ignore */ }
+    } catch (err: any) {
+      alert(err.message || 'Failed to load tenant');
+    }
   };
 
   const handleEditPlan = (tenant: Tenant) => {
@@ -72,14 +84,18 @@ export default function TenantsPage() {
       await api.patch(`/admin/tenants/${editingTenant.id}`, { plan: editPlan }, token!);
       setEditingTenant(null);
       load();
-    } catch { /* ignore */ }
+    } catch (err: any) {
+      alert(err.message || 'Failed to update plan');
+    }
   };
 
   const handleImpersonate = async (id: string) => {
     try {
       const data = await api.post(`/admin/tenants/${id}/impersonate`, {}, token!);
       setImpersonateData(data);
-    } catch { /* ignore */ }
+    } catch (err: any) {
+      alert(err.message || 'Failed to impersonate');
+    }
   };
 
   const statusBadge = (status: string) => {
@@ -213,11 +229,11 @@ export default function TenantsPage() {
           <div className="card p-6 w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-bold mb-4">Impersonate Tenant</h2>
             <div className="space-y-2 text-sm">
-              <p><span className="text-gray-500">Tenant:</span> {impersonateData.tenantName}</p>
-              <p><span className="text-gray-500">Plan:</span> {impersonateData.tenantPlan}</p>
-              <p><span className="text-gray-500">MD Name:</span> {impersonateData.mdFullName}</p>
-              <p><span className="text-gray-500">MD Email:</span> {impersonateData.mdEmail}</p>
-              <p className="text-xs text-gray-400 mt-3 italic">{impersonateData.message}</p>
+              <p><span className="text-gray-500">Tenant:</span> {impersonateData?.tenantName ?? '-'}</p>
+              <p><span className="text-gray-500">Plan:</span> {impersonateData?.tenantPlan ?? '-'}</p>
+              <p><span className="text-gray-500">MD Name:</span> {impersonateData?.mdFullName ?? '-'}</p>
+              <p><span className="text-gray-500">MD Email:</span> {impersonateData?.mdEmail ?? '-'}</p>
+              {impersonateData?.message && <p className="text-xs text-gray-400 mt-3 italic">{impersonateData.message}</p>}
             </div>
             <button onClick={() => setImpersonateData(null)} className="btn-secondary mt-6">Close</button>
           </div>

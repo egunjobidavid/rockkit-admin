@@ -28,7 +28,9 @@ export default function UsersPage() {
       const data = await api.get(`/admin/users?page=${p}&limit=20&search=${q}`, token!);
       setUsers((data as any)?.data ?? []);
       setTotal((data as any)?.total ?? 0);
-    } catch { /* ignore */ }
+    } catch (err: any) {
+      console.error('Failed to load users:', err);
+    }
     setLoading(false);
   };
 
@@ -42,20 +44,30 @@ export default function UsersPage() {
 
   const handleDeactivate = async (id: string) => {
     if (!confirm('Deactivate this user?')) return;
-    await api.patch(`/admin/users/${id}/deactivate`, {}, token!);
-    load();
+    try {
+      await api.patch(`/admin/users/${id}/deactivate`, {}, token!);
+      load();
+    } catch (err: any) {
+      alert(err.message || 'Failed to deactivate user');
+    }
   };
 
   const handleReactivate = async (id: string) => {
-    await api.patch(`/admin/users/${id}/reactivate`, {}, token!);
-    load();
+    try {
+      await api.patch(`/admin/users/${id}/reactivate`, {}, token!);
+      load();
+    } catch (err: any) {
+      alert(err.message || 'Failed to reactivate user');
+    }
   };
 
   const handleView = async (id: string) => {
     try {
       const data = await api.get(`/admin/users/${id}`, token!);
       setSelectedUser(data);
-    } catch { /* ignore */ }
+    } catch (err: any) {
+      alert(err.message || 'Failed to load user');
+    }
   };
 
   return (

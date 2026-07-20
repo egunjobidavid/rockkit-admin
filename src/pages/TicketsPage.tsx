@@ -31,7 +31,9 @@ export default function TicketsPage() {
       const data = await api.get(`/admin/tickets?${params}`, token!);
       setTickets((data as any)?.data ?? []);
       setTotal((data as any)?.total ?? 0);
-    } catch { /* ignore */ }
+    } catch (err: any) {
+      console.error('Failed to load tickets:', err);
+    }
     setLoading(false);
   };
 

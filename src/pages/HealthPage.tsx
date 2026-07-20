@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '../stores/auth-store';
 import { api } from '../api/client';
-import { Database, Server, Clock, Users, Building2 } from 'lucide-react';
+import { Database, Clock, Users, Building2 } from 'lucide-react';
 
 export default function HealthPage() {
   const { token } = useAuthStore();

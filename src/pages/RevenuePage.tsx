@@ -27,7 +27,7 @@ export default function RevenuePage() {
   if (loading) return <div className="p-8 text-gray-500">Loading...</div>;
 
   const s = (summary as any)?.summary ?? {};
-  const planBreakdown = (summary as any)?.plans ?? plans;
+  const planBreakdown = plans;
 
   return (
     <div className="p-8">
