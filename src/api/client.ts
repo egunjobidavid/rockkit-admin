@@ -1,4 +1,7 @@
-const BASE = (import.meta as any).env?.VITE_API_URL || 'https://copiaos-backend.onrender.com/api/v1';
+const envUrl = (import.meta as any).env?.VITE_API_URL;
+const BASE = envUrl
+  ? (envUrl.startsWith('http') ? envUrl : `https://${envUrl}`)
+  : 'https://copiaos-backend.onrender.com/api/v1';
 
 interface FetchOptions {
   method?: string;

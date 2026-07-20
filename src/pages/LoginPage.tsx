@@ -10,15 +10,25 @@ export default function LoginPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (token) navigate('/', { replace: true });
+    if (token) {
+      console.log('[LoginPage] Token detected, navigating to dashboard');
+      navigate('/', { replace: true });
+    }
   }, [token, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[LoginPage] Submitting login for:', email);
     await login(email, password);
+
     const currentToken = useAuthStore.getState().token;
-    if (currentToken) navigate('/', { replace: true });
+    console.log('[LoginPage] After login, token exists:', !!currentToken);
+    if (currentToken) {
+      navigate('/', { replace: true });
+    }
   };
+
+  if (token) return null;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
