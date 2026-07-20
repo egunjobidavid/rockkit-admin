@@ -7,6 +7,7 @@ import TenantsPage from './pages/TenantsPage';
 import UsersPage from './pages/UsersPage';
 import TicketsPage from './pages/TicketsPage';
 import PricingPage from './pages/PricingPage';
+import AppsPage from './pages/AppsPage';
 
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const RevenuePage = lazy(() => import('./pages/RevenuePage'));
@@ -41,6 +42,7 @@ export default function AppRouter() {
           <Route path="/" element={<Suspense fallback={<PageSpinner />}><DashboardPage /></Suspense>} />
           <Route path="/tenants" element={<TenantsPage />} />
           <Route path="/users" element={<UsersPage />} />
+          <Route path="/apps" element={<AppsPage />} />
           <Route path="/revenue" element={<Suspense fallback={<PageSpinner />}><RevenuePage /></Suspense>} />
           <Route path="/health" element={<Suspense fallback={<PageSpinner />}><HealthPage /></Suspense>} />
           <Route path="/tickets" element={<TicketsPage />} />

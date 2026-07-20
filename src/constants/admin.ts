@@ -86,6 +86,10 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   set_admin_role: 'Changed admin role',
   update_pricing: 'Updated pricing',
   reset_pricing: 'Reset pricing to defaults',
+  update_maintenance: 'Updated maintenance mode',
+  create_version: 'Registered app version',
+  update_version: 'Updated app version',
+  delete_version: 'Deleted app version',
 };
 
 // ─── Navigation ─────────────────────────────────────────────────────────────
@@ -94,6 +98,7 @@ export const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', minRole: 'viewer' as AdminRole },
   { to: '/tenants', label: 'Tenants', minRole: 'admin' as AdminRole },
   { to: '/users', label: 'Users', minRole: 'admin' as AdminRole },
+  { to: '/apps', label: 'Apps', minRole: 'admin' as AdminRole },
   { to: '/revenue', label: 'Revenue', minRole: 'admin' as AdminRole },
   { to: '/pricing', label: 'Pricing', minRole: 'superadmin' as AdminRole },
   { to: '/health', label: 'Health', minRole: 'admin' as AdminRole },
