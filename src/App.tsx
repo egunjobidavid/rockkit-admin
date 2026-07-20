@@ -8,6 +8,7 @@ import UsersPage from './pages/UsersPage';
 import RevenuePage from './pages/RevenuePage';
 import HealthPage from './pages/HealthPage';
 import TicketsPage from './pages/TicketsPage';
+import PricingPage from './pages/PricingPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { token } = useAuthStore();
@@ -33,6 +34,7 @@ export default function AppRouter() {
           <Route path="/revenue" element={<RevenuePage />} />
           <Route path="/health" element={<HealthPage />} />
           <Route path="/tickets" element={<TicketsPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -2,7 +2,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/auth-store';
 import {
   LayoutDashboard, Building2, Users, DollarSign, HeartPulse,
-  Ticket, LogOut, Shield,
+  Ticket, LogOut, Shield, Tag,
 } from 'lucide-react';
 
 const links = [
@@ -10,6 +10,7 @@ const links = [
   { to: '/tenants', icon: Building2, label: 'Tenants' },
   { to: '/users', icon: Users, label: 'Users' },
   { to: '/revenue', icon: DollarSign, label: 'Revenue' },
+  { to: '/pricing', icon: Tag, label: 'Pricing' },
   { to: '/health', icon: HeartPulse, label: 'Health' },
   { to: '/tickets', icon: Ticket, label: 'Tickets' },
 ];

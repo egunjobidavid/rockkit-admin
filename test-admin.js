@@ -12,7 +12,7 @@ function log(name, status, detail = '') {
 async function api(method, path, body = null, useToken = true) {
   const headers = { 'Content-Type': 'application/json' };
   if (useToken && TOKEN) headers['Authorization'] = `Bearer ${TOKEN}`;
-  if (path.includes('/admin/') && TENANT_ID) headers['X-Tenant-ID'] = TENANT_ID;
+  // Don't send X-Tenant-ID for admin routes - they use @SkipTenant()
   
   const opts = { method, headers };
   if (body) opts.body = JSON.stringify(body);
@@ -28,8 +28,8 @@ async function api(method, path, body = null, useToken = true) {
 async function testAuth() {
   console.log('\n═══ AUTH TESTS ═══');
 
-  // 1. Login with wrong password
-  const wrongPw = await api('POST', '/auth/login', { email: 'manager1783102798@copiaos.com', password: 'wrong' }, false);
+  // 1. Login with wrong password (must be >=6 chars to pass DTO validation)
+  const wrongPw = await api('POST', '/auth/login', { email: 'manager1783102798@copiaos.com', password: 'wrongpassword' }, false);
   log('Login wrong password', wrongPw.status === 401 ? 'PASS' : 'FAIL', `status=${wrongPw.status}`);
 
   // 2. Login with wrong email
@@ -158,11 +158,12 @@ async function testHealth() {
   console.log('\n═══ HEALTH ENDPOINT ═══');
 
   const health = await api('GET', '/admin/health');
-  log('GET /admin/health', health.ok ? 'PASS' : 'FAIL', `db=${health.json?.database}`);
-  log('Health has memory', health.json?.memory ? 'PASS' : 'FAIL');
-  log('Health has activeSubscriptions', health.json?.activeSubscriptions !== undefined ? 'PASS' : 'FAIL');
-  log('Health has openTickets', health.json?.openTickets !== undefined ? 'PASS' : 'FAIL');
-  log('Health has uptime', health.json?.uptime !== undefined ? 'PASS' : 'FAIL');
+  const hd = health.json?.data ?? health.json ?? {};
+  log('GET /admin/health', health.ok ? 'PASS' : 'FAIL', `db=${hd.database}`);
+  log('Health has memory', hd.memory ? 'PASS' : 'FAIL');
+  log('Health has activeSubscriptions', hd.activeSubscriptions !== undefined ? 'PASS' : 'FAIL');
+  log('Health has openTickets', hd.openTickets !== undefined ? 'PASS' : 'FAIL');
+  log('Health has uptime', hd.uptime !== undefined ? 'PASS' : 'FAIL');
 }
 
 // ─── TICKET ENDPOINTS ───────────────────────────────────────────────
