@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '../stores/auth-store';
 import { api } from '../api/client';
-import { Search, Ban, CheckCircle, Eye } from 'lucide-react';
+import { Search, Ban, CheckCircle, Eye, Edit, LogIn } from 'lucide-react';
 
 interface Tenant {
   id: string;
@@ -21,6 +21,9 @@ export default function TenantsPage() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [selectedTenant, setSelectedTenant] = useState<any>(null);
+  const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
+  const [editPlan, setEditPlan] = useState('');
+  const [impersonateData, setImpersonateData] = useState<any>(null);
 
   const load = async (p = page, q = search) => {
     setLoading(true);
@@ -55,6 +58,27 @@ export default function TenantsPage() {
     try {
       const data = await api.get(`/admin/tenants/${id}`, token!);
       setSelectedTenant(data);
+    } catch { /* ignore */ }
+  };
+
+  const handleEditPlan = (tenant: Tenant) => {
+    setEditingTenant(tenant);
+    setEditPlan(tenant.plan);
+  };
+
+  const handleSavePlan = async () => {
+    if (!editingTenant) return;
+    try {
+      await api.patch(`/admin/tenants/${editingTenant.id}`, { plan: editPlan }, token!);
+      setEditingTenant(null);
+      load();
+    } catch { /* ignore */ }
+  };
+
+  const handleImpersonate = async (id: string) => {
+    try {
+      const data = await api.post(`/admin/tenants/${id}/impersonate`, {}, token!);
+      setImpersonateData(data);
     } catch { /* ignore */ }
   };
 
@@ -112,16 +136,22 @@ export default function TenantsPage() {
                 <td className="px-4 py-3">{statusBadge(t.status)}</td>
                 <td className="px-4 py-3 text-gray-500">{new Date(t.created_at).toLocaleDateString()}</td>
                 <td className="px-4 py-3 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <button onClick={() => handleView(t.id)} className="text-gray-400 hover:text-gray-600" title="View">
+                  <div className="flex items-center justify-end gap-1">
+                    <button onClick={() => handleView(t.id)} className="p-1.5 text-gray-400 hover:text-gray-600 rounded" title="View">
                       <Eye className="w-4 h-4" />
                     </button>
+                    <button onClick={() => handleEditPlan(t)} className="p-1.5 text-gray-400 hover:text-blue-600 rounded" title="Edit Plan">
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => handleImpersonate(t.id)} className="p-1.5 text-gray-400 hover:text-purple-600 rounded" title="Impersonate">
+                      <LogIn className="w-4 h-4" />
+                    </button>
                     {t.status === 'active' ? (
-                      <button onClick={() => handleSuspend(t.id)} className="text-red-400 hover:text-red-600" title="Suspend">
+                      <button onClick={() => handleSuspend(t.id)} className="p-1.5 text-red-400 hover:text-red-600 rounded" title="Suspend">
                         <Ban className="w-4 h-4" />
                       </button>
                     ) : (
-                      <button onClick={() => handleReactivate(t.id)} className="text-green-400 hover:text-green-600" title="Reactivate">
+                      <button onClick={() => handleReactivate(t.id)} className="p-1.5 text-green-400 hover:text-green-600 rounded" title="Reactivate">
                         <CheckCircle className="w-4 h-4" />
                       </button>
                     )}
@@ -135,17 +165,9 @@ export default function TenantsPage() {
 
       {total > 20 && (
         <div className="flex items-center justify-between mt-4">
-          <button
-            disabled={page <= 1}
-            onClick={() => { setPage(page - 1); load(page - 1); }}
-            className="btn-secondary disabled:opacity-50"
-          >Previous</button>
+          <button disabled={page <= 1} onClick={() => { setPage(page - 1); load(page - 1); }} className="btn-secondary disabled:opacity-50">Previous</button>
           <span className="text-sm text-gray-500">Page {page} of {Math.ceil(total / 20)}</span>
-          <button
-            disabled={page * 20 >= total}
-            onClick={() => { setPage(page + 1); load(page + 1); }}
-            className="btn-secondary disabled:opacity-50"
-          >Next</button>
+          <button disabled={page * 20 >= total} onClick={() => { setPage(page + 1); load(page + 1); }} className="btn-secondary disabled:opacity-50">Next</button>
         </div>
       )}
 
@@ -164,6 +186,40 @@ export default function TenantsPage() {
               )}
             </div>
             <button onClick={() => setSelectedTenant(null)} className="btn-secondary mt-6">Close</button>
+          </div>
+        </div>
+      )}
+
+      {editingTenant && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setEditingTenant(null)}>
+          <div className="card p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-lg font-bold mb-4">Edit Plan: {editingTenant.name}</h2>
+            <select className="input mb-4" value={editPlan} onChange={(e) => setEditPlan(e.target.value)}>
+              <option value="free">Free</option>
+              <option value="growth">Growth</option>
+              <option value="professional">Professional</option>
+              <option value="enterprise">Enterprise</option>
+            </select>
+            <div className="flex gap-3">
+              <button onClick={handleSavePlan} className="btn-primary flex-1">Save</button>
+              <button onClick={() => setEditingTenant(null)} className="btn-secondary flex-1">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {impersonateData && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setImpersonateData(null)}>
+          <div className="card p-6 w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-lg font-bold mb-4">Impersonate Tenant</h2>
+            <div className="space-y-2 text-sm">
+              <p><span className="text-gray-500">Tenant:</span> {impersonateData.tenantName}</p>
+              <p><span className="text-gray-500">Plan:</span> {impersonateData.tenantPlan}</p>
+              <p><span className="text-gray-500">MD Name:</span> {impersonateData.mdFullName}</p>
+              <p><span className="text-gray-500">MD Email:</span> {impersonateData.mdEmail}</p>
+              <p className="text-xs text-gray-400 mt-3 italic">{impersonateData.message}</p>
+            </div>
+            <button onClick={() => setImpersonateData(null)} className="btn-secondary mt-6">Close</button>
           </div>
         </div>
       )}

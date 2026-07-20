@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '../stores/auth-store';
 import { api } from '../api/client';
-import { Search, UserX, Eye } from 'lucide-react';
+import { Search, UserX, UserCheck, Eye } from 'lucide-react';
 
 interface User {
   id: string;
@@ -43,6 +43,11 @@ export default function UsersPage() {
   const handleDeactivate = async (id: string) => {
     if (!confirm('Deactivate this user?')) return;
     await api.patch(`/admin/users/${id}/deactivate`, {}, token!);
+    load();
+  };
+
+  const handleReactivate = async (id: string) => {
+    await api.patch(`/admin/users/${id}/reactivate`, {}, token!);
     load();
   };
 
@@ -114,14 +119,20 @@ export default function UsersPage() {
                 </td>
                 <td className="px-4 py-3 text-gray-500">{new Date(u.created_at).toLocaleDateString()}</td>
                 <td className="px-4 py-3 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <button onClick={() => handleView(u.id)} className="text-gray-400 hover:text-gray-600">
+                  <div className="flex items-center justify-end gap-1">
+                    <button onClick={() => handleView(u.id)} className="p-1.5 text-gray-400 hover:text-gray-600 rounded" title="View">
                       <Eye className="w-4 h-4" />
                     </button>
-                    {u.status === 'active' && !u.is_superadmin && (
-                      <button onClick={() => handleDeactivate(u.id)} className="text-red-400 hover:text-red-600">
-                        <UserX className="w-4 h-4" />
-                      </button>
+                    {!u.is_superadmin && (
+                      u.status === 'active' ? (
+                        <button onClick={() => handleDeactivate(u.id)} className="p-1.5 text-red-400 hover:text-red-600 rounded" title="Deactivate">
+                          <UserX className="w-4 h-4" />
+                        </button>
+                      ) : (
+                        <button onClick={() => handleReactivate(u.id)} className="p-1.5 text-green-400 hover:text-green-600 rounded" title="Reactivate">
+                          <UserCheck className="w-4 h-4" />
+                        </button>
+                      )
                     )}
                   </div>
                 </td>
