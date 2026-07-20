@@ -1,20 +1,25 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '../stores/auth-store';
 import { api } from '../api/client';
-import { Search, MessageSquare, Download } from 'lucide-react';
+import { Search, MessageSquare, Download, Eye } from 'lucide-react';
 import { DataTable } from '../components/DataTable';
 import { StatusBadge } from '../components/Badge';
+import { Modal } from '../components/Modal';
 import { TICKET_STATUS, TICKET_PRIORITY } from '../constants/admin';
 import { downloadCsv } from '../utils/export';
 
 interface Ticket {
   id: string;
   subject: string;
+  message: string;
   status: string;
   priority: string;
   created_at: string;
+  updated_at: string;
   user_email: string;
+  user_full_name: string;
   tenant_name: string;
+  tenant_slug: string;
 }
 
 export default function TicketsPage() {
@@ -25,6 +30,8 @@ export default function TicketsPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [loading, setLoading] = useState(true);
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [updating, setUpdating] = useState(false);
 
   const LIMIT = 20;
 
@@ -68,6 +75,28 @@ export default function TicketsPage() {
     load(1, search, status);
   };
 
+  const handleViewTicket = async (ticket: Ticket) => {
+    try {
+      const data = await api.get(`/admin/tickets/${ticket.id}`, token!);
+      setSelectedTicket(data as unknown as Ticket);
+    } catch (err: any) {
+      alert(err.message || 'Failed to load ticket');
+    }
+  };
+
+  const handleUpdateStatus = async (newStatus: string) => {
+    if (!selectedTicket) return;
+    setUpdating(true);
+    try {
+      await api.patch(`/admin/tickets/${selectedTicket.id}/status`, { status: newStatus }, token!);
+      setSelectedTicket({ ...selectedTicket, status: newStatus });
+      load();
+    } catch (err: any) {
+      alert(err.message || 'Failed to update status');
+    }
+    setUpdating(false);
+  };
+
   const columns = [
     {
       key: 'subject',
@@ -98,6 +127,16 @@ export default function TicketsPage() {
       key: 'created_at',
       header: 'Created',
       render: (t: Ticket) => <span className="text-gray-500">{new Date(t.created_at).toLocaleDateString()}</span>,
+    },
+    {
+      key: 'actions',
+      header: '',
+      className: 'text-right',
+      render: (t: Ticket) => (
+        <button onClick={() => handleViewTicket(t)} className="p-1.5 text-gray-400 hover:text-gray-600 rounded" title="View details">
+          <Eye className="w-4 h-4" />
+        </button>
+      ),
     },
   ];
 
@@ -159,6 +198,55 @@ export default function TicketsPage() {
         }
         rowKey={(t) => t.id}
       />
+
+      <Modal open={!!selectedTicket} onClose={() => setSelectedTicket(null)} title="Ticket Details" maxWidth="max-w-2xl">
+        {selectedTicket && (
+          <div className="space-y-4">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="font-semibold text-gray-900">{selectedTicket.subject}</h3>
+                <p className="text-sm text-gray-500 mt-1">
+                  From <span className="font-medium">{selectedTicket.user_full_name || selectedTicket.user_email}</span>
+                  {selectedTicket.tenant_name && <> at <span className="font-medium">{selectedTicket.tenant_name}</span></>}
+                </p>
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <StatusBadge status={selectedTicket.status} map={TICKET_STATUS} />
+                <StatusBadge status={selectedTicket.priority} map={TICKET_PRIORITY} />
+              </div>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedTicket.message}</p>
+            </div>
+
+            <div className="flex items-center justify-between text-xs text-gray-400">
+              <span>Created: {new Date(selectedTicket.created_at).toLocaleString()}</span>
+              <span>Updated: {new Date(selectedTicket.updated_at).toLocaleString()}</span>
+            </div>
+
+            <div className="border-t border-gray-200 pt-4">
+              <p className="text-sm font-medium text-gray-700 mb-2">Update Status</p>
+              <div className="flex gap-2">
+                {['open', 'in_progress', 'closed'].map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => handleUpdateStatus(s)}
+                    disabled={updating || selectedTicket.status === s}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                      selectedTicket.status === s
+                        ? 'bg-primary-600 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    } disabled:opacity-50`}
+                  >
+                    {TICKET_STATUS[s]?.label || s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
