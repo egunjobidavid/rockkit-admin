@@ -6,6 +6,7 @@ interface User {
   email: string;
   fullName?: string;
   isSuperadmin?: boolean;
+  adminRole?: string | null;
 }
 
 interface AuthState {
@@ -32,9 +33,10 @@ export const useAuthStore = create<AuthState>((set) => ({
       console.log('[Admin] Login response:', JSON.stringify(Object.keys(data)));
       const user = data.user;
       console.log('[Admin] user:', user);
-      console.log('[Admin] isSuperadmin:', user?.isSuperadmin);
-      if (!user?.isSuperadmin) {
-        throw new Error('Not a superadmin account');
+      console.log('[Admin] isSuperadmin:', user?.isSuperadmin, 'adminRole:', user?.adminRole);
+      const hasAdminAccess = user?.isSuperadmin || (user?.adminRole && ['superadmin', 'admin', 'viewer'].includes(user.adminRole));
+      if (!hasAdminAccess) {
+        throw new Error('Not an admin account');
       }
       localStorage.setItem('admin_token', data.accessToken);
       localStorage.setItem('admin_user', JSON.stringify(user));
@@ -59,7 +61,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     if (token && userStr) {
       try {
         const user = JSON.parse(userStr);
-        if (user.isSuperadmin) {
+        if (user.isSuperadmin || (user.adminRole && ['superadmin', 'admin', 'viewer'].includes(user.adminRole))) {
           set({ token, user });
           console.log('[Admin] Restored session from storage');
         }
