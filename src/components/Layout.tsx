@@ -2,7 +2,8 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/auth-store';
 import {
   LayoutDashboard, Building2, Users, DollarSign, HeartPulse,
-  Ticket, LogOut, Shield, Tag,
+  Ticket, LogOut, Shield, Tag, Globe, Activity, Settings,
+  BarChart3, BookOpen,
 } from 'lucide-react';
 
 const ROLE_HIERARCHY: Record<string, number> = { superadmin: 3, admin: 2, viewer: 1 };
@@ -16,10 +17,15 @@ const links = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', minRole: 'viewer' },
   { to: '/tenants', icon: Building2, label: 'Tenants', minRole: 'admin' },
   { to: '/users', icon: Users, label: 'Users', minRole: 'admin' },
+  { to: '/apps', icon: Globe, label: 'Apps', minRole: 'admin' },
+  { to: '/sessions', icon: Activity, label: 'Sessions', minRole: 'admin' },
+  { to: '/config', icon: Settings, label: 'Config', minRole: 'superadmin' },
+  { to: '/analytics', icon: BarChart3, label: 'Analytics', minRole: 'admin' },
   { to: '/revenue', icon: DollarSign, label: 'Revenue', minRole: 'admin' },
   { to: '/pricing', icon: Tag, label: 'Pricing', minRole: 'superadmin' },
   { to: '/health', icon: HeartPulse, label: 'Health', minRole: 'admin' },
   { to: '/tickets', icon: Ticket, label: 'Tickets', minRole: 'admin' },
+  { to: '/help', icon: BookOpen, label: 'Help', minRole: 'viewer' },
 ];
 
 const ROLE_BADGES: Record<string, { label: string; color: string }> = {

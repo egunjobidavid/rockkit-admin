@@ -10,6 +10,7 @@ import PricingPage from './pages/PricingPage';
 import AppsPage from './pages/AppsPage';
 import SessionsPage from './pages/SessionsPage';
 import ConfigPage from './pages/ConfigPage';
+import HelpPage from './pages/HelpPage';
 
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const RevenuePage = lazy(() => import('./pages/RevenuePage'));
@@ -53,6 +54,7 @@ export default function AppRouter() {
           <Route path="/health" element={<Suspense fallback={<PageSpinner />}><HealthPage /></Suspense>} />
           <Route path="/tickets" element={<TicketsPage />} />
           <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/help" element={<HelpPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
